@@ -221,8 +221,9 @@ public class NinjaController implements Controller {
      */
     @Routed(priority = PriorityCollector.DEFAULT_PRIORITY - 1, value = "/ui/:1/delete")
     public void deleteBucket(WebContext ctx, String bucket) {
-        storage.getBucket(bucket).delete();
-        UserContext.message(Message.info("Bucket successfully deleted."));
+//        storage.getBucket(bucket).delete();
+//        UserContext.message(Message.info("Bucket successfully deleted."));
+        UserContext.message(Message.info("Deleting a bucket from storage is prohibited via web! Please address your IT."));
         onError(ctx, null);
     }
 
@@ -238,14 +239,15 @@ public class NinjaController implements Controller {
      */
     @Routed("/ui/:1/:2/delete")
     public void deleteObject(WebContext ctx, String bucketName, String id) {
-        Bucket bucket = storage.getBucket(bucketName);
-        if (bucket.exists()) {
-            StoredObject object = bucket.getObject(id);
-            if (object.exists()) {
-                object.delete();
-                UserContext.message(Message.info("Object successfully deleted."));
-            }
-        }
+//        Bucket bucket = storage.getBucket(bucketName);
+//        if (bucket.exists()) {
+//            StoredObject object = bucket.getObject(id);
+//            if (object.exists()) {
+//                object.delete();
+//                UserContext.message(Message.info("Object successfully deleted."));
+//            }
+//        }
+        UserContext.message(Message.info("Deleting an object from storage is prohibited via web! Please address your IT."));
         bucket(ctx, bucketName);
     }
 
