@@ -8,14 +8,16 @@
 
 package ninja;
 
-import com.google.common.collect.Lists;
-import sirius.kernel.commons.Watch;
-import sirius.kernel.di.std.Register;
-import sirius.kernel.nls.NLS;
-
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.common.collect.Lists;
+
+import sirius.kernel.commons.Watch;
+import sirius.kernel.di.std.Register;
+import sirius.kernel.health.Log;
+import sirius.kernel.nls.NLS;
 
 /**
  * Contains a log of the latest API calls
@@ -25,7 +27,15 @@ import java.util.List;
  */
 @Register(classes = APILog.class)
 public class APILog {
-
+    protected static final Log LOG = Log.get("api-log");
+    
+    private boolean debugEnabled;
+    
+    public APILog()
+    {
+        this.debugEnabled = getBooleanSystemPropertyOrDefault("debugEnabled", false);
+    }
+    
     /**
      * Used to describe if a call was successful or why if failed.
      */
@@ -118,6 +128,13 @@ public class APILog {
             this.result = result;
             this.duration = duration;
         }
+    
+        @Override
+        public String toString()
+        {
+            return "Function: " + function + ", Description: " + description +
+                   ", Result: " + result + ", Duration: " + duration;
+        }
     }
 
     private final List<Entry> entries = Lists.newArrayList();
@@ -156,10 +173,38 @@ public class APILog {
      */
     public void log(String function, String description, Result result, Watch watch) {
         synchronized (entries) {
-            entries.add(0, new Entry(function, description, result.name(), watch.duration()));
+            Entry newEntry = new Entry(function, description, result.name(), watch.duration());
+            entries.add(0, newEntry);
             if (entries.size() > 250) {
                 entries.remove(entries.size() - 1);
             }
+            if (!debugEnabled) {
+                return;
+            }
+            if (result == Result.OK) {
+                LOG.INFO(newEntry);
+            }
+            else {
+                LOG.SEVERE(newEntry);
+            }
+        }
+    }
+    
+    /**
+     * Returns a system property or the default value.
+     * @param variableName  The system property name
+     * @param defaultValue  The default value in case of failure
+     * @return              The system property or the default value
+     */
+    private boolean getBooleanSystemPropertyOrDefault(String variableName, boolean defaultValue)
+    {
+        try
+        {
+            return Boolean.parseBoolean(System.getProperty(variableName));
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
         }
     }
 }
