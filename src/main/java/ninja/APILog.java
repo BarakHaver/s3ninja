@@ -15,7 +15,6 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import sirius.kernel.commons.Watch;
-import sirius.kernel.di.std.ConfigValue;
 import sirius.kernel.di.std.Register;
 import sirius.kernel.health.Log;
 import sirius.kernel.nls.NLS;
@@ -30,8 +29,12 @@ import sirius.kernel.nls.NLS;
 public class APILog {
     protected static final Log LOG = Log.get("api-log");
     
-    @ConfigValue("api-log.debugMode")
-    private boolean debugMode;
+    private boolean debugEnabled;
+    
+    public APILog()
+    {
+        this.debugEnabled = getBooleanSystemPropertyOrDefault("debugEnabled", false);
+    }
     
     /**
      * Used to describe if a call was successful or why if failed.
@@ -175,7 +178,7 @@ public class APILog {
             if (entries.size() > 250) {
                 entries.remove(entries.size() - 1);
             }
-            if (!debugMode) {
+            if (!debugEnabled) {
                 return;
             }
             if (result == Result.OK) {
@@ -184,6 +187,24 @@ public class APILog {
             else {
                 LOG.SEVERE(newEntry);
             }
+        }
+    }
+    
+    /**
+     * Returns a system property or the default value.
+     * @param variableName  The system property name
+     * @param defaultValue  The default value in case of failure
+     * @return              The system property or the default value
+     */
+    private boolean getBooleanSystemPropertyOrDefault(String variableName, boolean defaultValue)
+    {
+        try
+        {
+            return Boolean.parseBoolean(System.getProperty(variableName));
+        }
+        catch (Exception e)
+        {
+            return defaultValue;
         }
     }
 }
